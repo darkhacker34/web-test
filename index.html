@@ -1,14 +1,174 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My First Website</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/static/img/favicon.svg" sizes="any" type="image/svg+xml">
+    <title>Teraboxed</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #4caf50;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group input[type="text"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 300px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px #2e7d32;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #388e3c;
+        }
+
+        button:active {
+            box-shadow: 0 2px #1b5e20;
+            transform: translateY(2px);
+        }
+
+        .video-container {
+            max-width: 100%;
+            /* Adjust the width to fit your design */
+            margin: 20px auto;
+            /* Center the video player horizontally */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            /* Initially hidden */
+        }
+
+        video {
+            width: 100%;
+            /* Full width of the container */
+            height: auto;
+            /* Height is set automatically to maintain aspect ratio */
+            max-height: 80vh;
+            /* Optional: set a max-height to ensure it fits within the viewport */
+            border-radius: 5px;
+        }
+
+        /* Other styles remain the same */
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </head>
 
-    
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is my first hosted website on Netlify.</p>
+    <div class="header">
+        <h1>Teraboxed</h1>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="urlInput" placeholder="Enter URL here">
+        <button id="fetchButton">Fetch Video Link</button>
+    </div>
+
+    <div class="video-container" id="videoContainer" style="display: none;">
+        <video controls id="videoPlayer" poster="">
+            <source src="" type="video/mp4">Your browser does not support the video tag.
+        </video>
+        <p id="fileName">Name: </p>
+        <button id="fastDlButton">Fast Download</button>
+        <button id="hdVideoButton">HD Video</button>
+    </div>
+
+    <script>
+        let fast_dl, hd_video;
+
+        document.getElementById('fetchButton').addEventListener('click', async () => {
+            const urlInput = document.getElementById('urlInput').value;
+            if (!urlInput) return alert('Please enter a URL.');
+
+            try {
+                $.get('/api', { url: urlInput }, result => {
+                    ({ fast_dl, hd_video } = result);
+                    const { title, thumbnail } = result;
+                    const videoPlayer = document.getElementById('videoPlayer');
+                    const videoContainer = document.getElementById('videoContainer');
+                    const fileName = document.getElementById('fileName');
+
+                    videoPlayer.poster = thumbnail;
+                    fileName.appendChild(document.createTextNode(title));
+                    videoPlayer.src = hd_video;
+                    
+                    videoContainer.style.display = 'inline';
+
+                    videoPlayer.onloadedmetadata = () => {
+                        const aspectRatio = videoPlayer.videoWidth / videoPlayer.videoHeight;
+                        const maxWidth = window.innerWidth * 0.9;
+                        const maxHeight = window.innerHeight * 0.8;
+                        let width = maxWidth,
+                            height = maxWidth / aspectRatio;
+
+                        if (height > maxHeight) {
+                            height = maxHeight;
+                            width = maxHeight * aspectRatio;
+                        }
+
+                        videoContainer.style.width = `${width}px`;
+                        videoContainer.style.height = `${height}px`;
+                    };
+
+                    videoPlayer.load();
+                    videoPlayer.play();
+                }).fail(() => alert('Failed to fetch video link.'));
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching video link.');
+            }
+        });
+
+        document.getElementById('fastDlButton').addEventListener('click', () => {
+            window.open(fast_dl, '_blank');
+        });
+
+        document.getElementById('hdVideoButton').addEventListener('click', () => {
+            window.open(hd_video, '_blank');
+        });
+    </script>
 </body>
-</html>
+
+            </html>
